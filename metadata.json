@@ -1,0 +1,7 @@
+{
+  "name": "TravelPulse - AI Travel Planner",
+  "description": "A comprehensive mobile-first travel planning application featuring flight tracking, hotel comparison, interactive itineraries, and AI-powered place recommendations.",
+  "requestFramePermissions": [
+    "geolocation"
+  ]
+}
