@@ -138,7 +138,7 @@ const SortableItineraryItem: React.FC<SortableItemProps> = ({
 
           {item.note && (
             <div className="mt-3 pt-3 border-t border-[#f9f9f9]">
-              <p className="text-[11px] text-gray-500 italic leading-relaxed">「 {item.note} 」</p>
+              <p className="text-[11px] text-gray-500 leading-relaxed">{item.note}</p>
             </div>
           )}
         </div>

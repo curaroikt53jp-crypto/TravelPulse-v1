@@ -21,10 +21,10 @@ const Shopping: React.FC<ShoppingProps> = ({ shoppingItems, setShoppingItems, it
   const [image, setImage] = useState<string | undefined>(undefined);
 
   const buyers = ['全部', ...Array.from(new Set(shoppingItems.map(item => item.forWhom || '自己'))).sort()];
-  const itineraryDates: string[] = Array.from(new Set<string>(itineraryItems.map(item => item.date))).sort();
+  const itineraryDates: string[] = Array.from(new Set<string>(itineraryItems.filter(item => item.activity.trim() !== "").map(item => item.date))).sort();
 
   const filteredItinerariesForSelect = itineraryItems
-    .filter(item => item.date === selectedDateForItinerary)
+    .filter(item => item.date === selectedDateForItinerary && item.activity.trim() !== "")
     .sort((a, b) => a.startTime.localeCompare(b.startTime));
 
   const handleAdd = () => {
@@ -40,7 +40,7 @@ const Shopping: React.FC<ShoppingProps> = ({ shoppingItems, setShoppingItems, it
         forWhom: forWhom.trim() || '自己',
         image
       };
-      setShoppingItems([...shoppingItems, newItem]);
+      setShoppingItems(prev => [...prev, newItem]);
       setName('');
       setAmount('');
       setItineraryId('');
@@ -53,7 +53,7 @@ const Shopping: React.FC<ShoppingProps> = ({ shoppingItems, setShoppingItems, it
 
   const toggleCheck = (id: string) => {
     if (isReadOnly) return;
-    setShoppingItems(shoppingItems.map(item => 
+    setShoppingItems(prev => prev.map(item => 
       item.id === id ? { ...item, isChecked: !item.isChecked } : item
     ));
   };
@@ -61,7 +61,7 @@ const Shopping: React.FC<ShoppingProps> = ({ shoppingItems, setShoppingItems, it
   const removeItem = (id: string) => {
     if (isReadOnly) return;
     if(confirm('確定要刪除此購物項目嗎？')) {
-      setShoppingItems(shoppingItems.filter(item => item.id !== id));
+      setShoppingItems(prev => prev.filter(item => item.id !== id));
     }
   };
 
