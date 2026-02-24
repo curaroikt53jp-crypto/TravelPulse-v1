@@ -19,34 +19,50 @@ const Shopping: React.FC<ShoppingProps> = ({ shoppingItems, setShoppingItems, it
   const [forWhom, setForWhom] = useState('');
   const [activeBuyer, setActiveBuyer] = useState('全部');
   const [image, setImage] = useState<string | undefined>(undefined);
+  const [editingItemId, setEditingItemId] = useState<string | null>(null);
 
   const buyers = ['全部', ...Array.from(new Set(shoppingItems.map(item => item.forWhom || '自己'))).sort()];
   const itineraryDates: string[] = Array.from(
     new Set<string>(
       itineraryItems
-        .filter(item => item.activity && item.activity.trim() !== "")
+        .filter(item => item.activity && item.activity.trim() !== "" && item.activity !== "新行程")
         .map(item => item.date)
     )
   ).sort();
 
   const filteredItinerariesForSelect = itineraryItems
-    .filter(item => item.date === selectedDateForItinerary && item.activity && item.activity.trim() !== "")
+    .filter(item => item.date === selectedDateForItinerary && item.activity && item.activity.trim() !== "" && item.activity !== "新行程")
     .sort((a, b) => a.startTime.localeCompare(b.startTime));
 
   const handleAdd = () => {
     if (isReadOnly) return;
     if (name.trim()) {
-      const newItem: ShoppingItem = {
-        id: Date.now().toString(),
-        name,
-        amount: Number(amount) || 0,
-        currency: amountCurrency,
-        isChecked: false,
-        itineraryItemId: itineraryId || undefined,
-        forWhom: forWhom.trim() || '自己',
-        image
-      };
-      setShoppingItems(prev => [...prev, newItem]);
+      if (editingItemId) {
+        setShoppingItems(prev => prev.map(item => 
+          item.id === editingItemId ? {
+            ...item,
+            name,
+            amount: Number(amount) || 0,
+            currency: amountCurrency,
+            itineraryItemId: itineraryId || undefined,
+            forWhom: forWhom.trim() || '自己',
+            image
+          } : item
+        ));
+        setEditingItemId(null);
+      } else {
+        const newItem: ShoppingItem = {
+          id: Date.now().toString(),
+          name,
+          amount: Number(amount) || 0,
+          currency: amountCurrency,
+          isChecked: false,
+          itineraryItemId: itineraryId || undefined,
+          forWhom: forWhom.trim() || '自己',
+          image
+        };
+        setShoppingItems(prev => [...prev, newItem]);
+      }
       setName('');
       setAmount('');
       setItineraryId('');
@@ -55,6 +71,30 @@ const Shopping: React.FC<ShoppingProps> = ({ shoppingItems, setShoppingItems, it
       setImage(undefined);
       setIsAdding(false);
     }
+  };
+
+  const handleEdit = (item: ShoppingItem) => {
+    if (isReadOnly) return;
+    setName(item.name);
+    setAmount(item.amount.toString());
+    setAmountCurrency(item.currency);
+    setForWhom(item.forWhom || '');
+    setImage(item.image);
+    
+    if (item.itineraryItemId) {
+      const linked = itineraryItems.find(i => i.id === item.itineraryItemId);
+      if (linked) {
+        setSelectedDateForItinerary(linked.date);
+        setItineraryId(linked.id);
+      }
+    } else {
+      setSelectedDateForItinerary('');
+      setItineraryId('');
+    }
+    
+    setEditingItemId(item.id);
+    setIsAdding(true);
+    window.scrollTo({ top: 0, behavior: 'smooth' });
   };
 
   const toggleCheck = (id: string) => {
@@ -95,7 +135,20 @@ const Shopping: React.FC<ShoppingProps> = ({ shoppingItems, setShoppingItems, it
         </div>
         {!isReadOnly && (
           <button 
-            onClick={() => { if(isAdding) setIsAdding(false); else setIsAdding(true); }}
+            onClick={() => { 
+              if(isAdding) {
+                setIsAdding(false);
+                setEditingItemId(null);
+                setName('');
+                setAmount('');
+                setItineraryId('');
+                setSelectedDateForItinerary('');
+                setForWhom('');
+                setImage(undefined);
+              } else {
+                setIsAdding(true);
+              }
+            }}
             className={`text-[10px] font-bold tracking-widest px-4 py-2 rounded-full transition-all uppercase border ${
               isAdding ? 'bg-red-50 border-red-200 text-red-500' : 'bg-white border-[#333] text-[#333]'
             }`}
@@ -228,7 +281,7 @@ const Shopping: React.FC<ShoppingProps> = ({ shoppingItems, setShoppingItems, it
             onClick={handleAdd}
             className="w-full bg-[#333] text-white py-3 rounded-xl font-bold text-sm tracking-widest shadow-md active:scale-95 transition-transform"
           >
-            新增到清單
+            {editingItemId ? '儲存變更' : '新增到清單'}
           </button>
         </div>
       )}
@@ -283,9 +336,14 @@ const Shopping: React.FC<ShoppingProps> = ({ shoppingItems, setShoppingItems, it
                     </p>
                   </div>
                   {!isReadOnly && (
-                    <button onClick={() => removeItem(item.id)} className="text-gray-100 hover:text-red-300 transition-colors opacity-0 group-hover:opacity-100">
-                      <i className="fas fa-trash-alt text-xs"></i>
-                    </button>
+                    <div className="flex gap-2 opacity-0 group-hover:opacity-100 transition-opacity">
+                      <button onClick={() => handleEdit(item)} className="text-gray-300 hover:text-[#8a7a5d] p-1">
+                        <i className="fas fa-pen text-[10px]"></i>
+                      </button>
+                      <button onClick={() => removeItem(item.id)} className="text-gray-100 hover:text-red-300 p-1">
+                        <i className="fas fa-trash-alt text-[10px]"></i>
+                      </button>
+                    </div>
                   )}
                 </div>
               </div>
