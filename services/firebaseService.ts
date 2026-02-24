@@ -28,14 +28,26 @@ if (isConfigured) {
   }
 }
 
+const sanitizeData = (data: any): any => {
+  if (data === null || typeof data !== 'object') return data;
+  if (Array.isArray(data)) return data.map(sanitizeData);
+  
+  return Object.fromEntries(
+    Object.entries(data)
+      .filter(([_, value]) => value !== undefined)
+      .map(([key, value]) => [key, sanitizeData(value)])
+  );
+};
+
 export const saveTripData = async (data: any) => {
   if (!db || !isConfigured) {
     localStorage.setItem(TRIP_ID, JSON.stringify(data));
     return;
   }
   try {
+    const sanitized = sanitizeData(data);
     const tripRef = doc(db, "trips", TRIP_ID);
-    await setDoc(tripRef, data, { merge: true });
+    await setDoc(tripRef, sanitized, { merge: true });
   } catch (error) {
     console.error("Error saving trip data to Firebase:", error);
     localStorage.setItem(TRIP_ID, JSON.stringify(data));
@@ -64,8 +76,9 @@ export const archiveTrip = async (archiveData: any) => {
     return;
   }
   try {
+    const sanitized = sanitizeData(archiveData);
     const archiveRef = doc(db, "archives", id);
-    await setDoc(archiveRef, { ...archiveData, id });
+    await setDoc(archiveRef, { ...sanitized, id });
   } catch (error) {
     console.error("Archive failed:", error);
   }
