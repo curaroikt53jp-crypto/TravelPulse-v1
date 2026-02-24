@@ -32,11 +32,13 @@ const sanitizeData = (data: any): any => {
   if (data === null || typeof data !== 'object') return data;
   if (Array.isArray(data)) return data.map(sanitizeData);
   
-  return Object.fromEntries(
-    Object.entries(data)
-      .filter(([_, value]) => value !== undefined)
-      .map(([key, value]) => [key, sanitizeData(value)])
-  );
+  const sanitized: any = {};
+  for (const [key, value] of Object.entries(data)) {
+    if (value !== undefined) {
+      sanitized[key] = sanitizeData(value);
+    }
+  }
+  return sanitized;
 };
 
 export const saveTripData = async (data: any) => {
@@ -47,7 +49,8 @@ export const saveTripData = async (data: any) => {
   try {
     const sanitized = sanitizeData(data);
     const tripRef = doc(db, "trips", TRIP_ID);
-    await setDoc(tripRef, sanitized, { merge: true });
+    // Remove merge: true to ensure full state replacement
+    await setDoc(tripRef, sanitized);
   } catch (error) {
     console.error("Error saving trip data to Firebase:", error);
     localStorage.setItem(TRIP_ID, JSON.stringify(data));

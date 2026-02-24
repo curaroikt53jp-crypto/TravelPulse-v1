@@ -21,10 +21,16 @@ const Shopping: React.FC<ShoppingProps> = ({ shoppingItems, setShoppingItems, it
   const [image, setImage] = useState<string | undefined>(undefined);
 
   const buyers = ['全部', ...Array.from(new Set(shoppingItems.map(item => item.forWhom || '自己'))).sort()];
-  const itineraryDates: string[] = Array.from(new Set<string>(itineraryItems.filter(item => item.activity.trim() !== "").map(item => item.date))).sort();
+  const itineraryDates: string[] = Array.from(
+    new Set<string>(
+      itineraryItems
+        .filter(item => item.activity && item.activity.trim() !== "")
+        .map(item => item.date)
+    )
+  ).sort();
 
   const filteredItinerariesForSelect = itineraryItems
-    .filter(item => item.date === selectedDateForItinerary && item.activity.trim() !== "")
+    .filter(item => item.date === selectedDateForItinerary && item.activity && item.activity.trim() !== "")
     .sort((a, b) => a.startTime.localeCompare(b.startTime));
 
   const handleAdd = () => {

@@ -38,12 +38,12 @@ const App: React.FC = () => {
     if (data.startDate) setStartDate(data.startDate);
     if (data.endDate) setEndDate(data.endDate);
     if (data.coverImage) setCoverImage(data.coverImage);
-    if (data.dailyMaps) setDailyMaps(data.dailyMaps);
-    if (data.debts) setDebts(data.debts);
-    if (data.flights) setFlights(data.flights);
-    if (data.hotels) setHotels(data.hotels);
-    if (data.itineraryItems) setItineraryItems(data.itineraryItems);
-    if (data.shoppingItems) setShoppingItems(data.shoppingItems);
+    setDailyMaps(data.dailyMaps || {});
+    setDebts(data.debts || []);
+    setFlights(data.flights || []);
+    setHotels(data.hotels || []);
+    setItineraryItems(data.itineraryItems || []);
+    setShoppingItems(data.shoppingItems || []);
   };
 
   const loadCurrentTrip = async () => {
