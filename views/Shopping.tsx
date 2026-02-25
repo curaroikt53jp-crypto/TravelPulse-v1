@@ -25,13 +25,24 @@ const Shopping: React.FC<ShoppingProps> = ({ shoppingItems, setShoppingItems, it
   const itineraryDates: string[] = Array.from(
     new Set<string>(
       itineraryItems
-        .filter(item => item.activity && item.activity.trim() !== "" && item.activity !== "新行程")
+        .filter(item => 
+          item.activity && 
+          item.activity.trim() !== "" && 
+          item.activity !== "新行程" &&
+          item.date && 
+          item.date.includes('-') // Ensure it's a valid date string
+        )
         .map(item => item.date)
     )
   ).sort();
 
   const filteredItinerariesForSelect = itineraryItems
-    .filter(item => item.date === selectedDateForItinerary && item.activity && item.activity.trim() !== "" && item.activity !== "新行程")
+    .filter(item => 
+      item.date === selectedDateForItinerary && 
+      item.activity && 
+      item.activity.trim() !== "" && 
+      item.activity !== "新行程"
+    )
     .sort((a, b) => a.startTime.localeCompare(b.startTime));
 
   const handleAdd = () => {
@@ -111,9 +122,26 @@ const Shopping: React.FC<ShoppingProps> = ({ shoppingItems, setShoppingItems, it
     }
   };
 
-  const filteredItems = activeBuyer === '全部' 
+  const filteredItems = (activeBuyer === '全部' 
     ? shoppingItems 
-    : shoppingItems.filter(item => (item.forWhom || '自己') === activeBuyer);
+    : shoppingItems.filter(item => (item.forWhom || '自己') === activeBuyer))
+    .sort((a, b) => {
+      const itineraryA = itineraryItems.find(i => i.id === a.itineraryItemId);
+      const itineraryB = itineraryItems.find(i => i.id === b.itineraryItemId);
+
+      // Primary sort: Time (Date + StartTime)
+      const timeA = itineraryA ? `${itineraryA.date} ${itineraryA.startTime}` : '9999-12-31 23:59';
+      const timeB = itineraryB ? `${itineraryB.date} ${itineraryB.startTime}` : '9999-12-31 23:59';
+      
+      if (timeA !== timeB) {
+        return timeA.localeCompare(timeB);
+      }
+
+      // Secondary sort: For Whom
+      const whomA = a.forWhom || '自己';
+      const whomB = b.forWhom || '自己';
+      return whomA.localeCompare(whomB);
+    });
 
   const summaryByCurrency = filteredItems
     .filter(item => item.isChecked)
