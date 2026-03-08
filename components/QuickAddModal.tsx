@@ -22,8 +22,10 @@ const QuickAddModal: React.FC<QuickAddModalProps> = ({ isOpen, initialData, defa
     type: "attraction",
     transportation: "步行",
     note: "",
-    attachment: ""
+    attachments: []
   });
+
+  const [imageUrlInput, setImageUrlInput] = useState('');
 
   useEffect(() => {
     if (isOpen) {
@@ -32,7 +34,8 @@ const QuickAddModal: React.FC<QuickAddModalProps> = ({ isOpen, initialData, defa
           ...formData,
           ...initialData,
           locationUrl: initialData.locationUrl || "",
-          transportation: initialData.transportation || "步行"
+          transportation: initialData.transportation || "步行",
+          attachments: initialData.attachments || []
         });
       } else {
         setFormData({
@@ -45,11 +48,23 @@ const QuickAddModal: React.FC<QuickAddModalProps> = ({ isOpen, initialData, defa
           type: "attraction",
           transportation: "步行",
           note: "",
-          attachment: ""
+          attachments: []
         });
       }
+      setImageUrlInput('');
     }
   }, [initialData, isOpen, defaultDate]);
+
+  const addImage = () => {
+    const trimmedUrl = imageUrlInput.trim();
+    if (trimmedUrl) {
+      setFormData(prev => ({
+        ...prev,
+        attachments: [...(prev.attachments || []), trimmedUrl]
+      }));
+      setImageUrlInput('');
+    }
+  };
 
   const importBookedHotel = () => {
     const bookedHotel = hotels.find(h => h.isSelected);
@@ -170,16 +185,37 @@ const QuickAddModal: React.FC<QuickAddModalProps> = ({ isOpen, initialData, defa
               <input 
                 type="url" 
                 placeholder="貼上圖片 URL..." 
-                value={formData.attachment} 
-                onChange={e => setFormData({...formData, attachment: e.target.value})}
+                value={imageUrlInput} 
+                onChange={e => setImageUrlInput(e.target.value)}
+                onKeyDown={e => {
+                  if (e.key === 'Enter') {
+                    e.preventDefault();
+                    addImage();
+                  }
+                }}
                 className="flex-1 bg-gray-50 border-none rounded-xl px-4 py-3 text-sm outline-none" 
               />
-              {formData.attachment && (
-                <div className="relative w-12 h-12 rounded-xl overflow-hidden border border-gray-100 flex-shrink-0">
-                  <img src={formData.attachment} className="w-full h-full object-cover" alt="preview" />
-                  <button onClick={() => setFormData({...formData, attachment: ''})} className="absolute top-0 right-0 bg-black/50 text-white w-4 h-4 text-[8px] flex items-center justify-center"><i className="fas fa-times"></i></button>
+              <button 
+                type="button"
+                onClick={addImage}
+                className="px-4 rounded-xl bg-[#333] text-white text-[10px] font-bold uppercase tracking-widest active:scale-95 transition-transform"
+              >
+                新增
+              </button>
+            </div>
+            <div className="flex gap-2 overflow-x-auto py-2 scrollbar-hide">
+              {formData.attachments?.map((url, i) => (
+                <div key={i} className="relative w-20 h-20 rounded-lg overflow-hidden flex-shrink-0 border border-gray-100">
+                  <img src={url} className="w-full h-full object-cover" alt="prev" />
+                  <button 
+                    type="button" 
+                    onClick={() => setFormData({...formData, attachments: formData.attachments?.filter((_, idx) => idx !== i)})} 
+                    className="absolute top-1 right-1 bg-black/50 text-white w-5 h-5 rounded-full flex items-center justify-center"
+                  >
+                    <i className="fas fa-times text-[10px]"></i>
+                  </button>
                 </div>
-              )}
+              ))}
             </div>
           </div>
 

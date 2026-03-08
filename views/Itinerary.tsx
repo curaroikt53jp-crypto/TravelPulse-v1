@@ -71,9 +71,18 @@ const SortableItineraryItem: React.FC<SortableItemProps> = ({
       </div>
       
       <div className={`bg-white rounded-2xl border transition-all overflow-hidden ${isReadOnly ? 'border-gray-100' : 'border-[#f1f1f1] minimal-shadow group-hover:border-[#8a7a5d]'}`}>
-        {item.attachment && (
-          <div className="h-44 w-full overflow-hidden">
-            <img src={item.attachment} className="w-full h-full object-cover" alt="attachment" />
+        {item.attachments && item.attachments.length > 0 && (
+          <div className="relative h-44 bg-gray-100">
+            <div className="flex overflow-x-auto snap-x snap-mandatory scrollbar-hide h-full">
+              {item.attachments.map((img, i) => (
+                <img key={i} src={img} className="flex-shrink-0 w-full snap-start object-cover" alt={`${item.activity} ${i}`} />
+              ))}
+            </div>
+            {item.attachments.length > 1 && (
+              <div className="absolute bottom-3 right-4 bg-black/50 backdrop-blur-sm text-white px-2 py-1 rounded-full text-[8px] font-bold tracking-widest uppercase">
+                <i className="fas fa-images mr-1"></i> {item.attachments.length} Photos
+              </div>
+            )}
           </div>
         )}
         <div className="p-5">

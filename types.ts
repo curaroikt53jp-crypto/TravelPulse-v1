@@ -48,7 +48,7 @@ export interface ItineraryItem {
   type: 'attraction' | 'food' | 'transport' | 'rest';
   transportation?: string;
   note?: string;
-  attachment?: string;
+  attachments?: string[];
 }
 
 export interface ShoppingItem {

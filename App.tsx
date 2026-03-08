@@ -141,7 +141,7 @@ const App: React.FC = () => {
         type: item.type || 'attraction',
         transportation: item.transportation || '步行',
         note: item.note || "",
-        attachment: item.attachment || ""
+        attachments: item.attachments || []
       };
       setItineraryItems([...itineraryItems, newItem]);
     }
