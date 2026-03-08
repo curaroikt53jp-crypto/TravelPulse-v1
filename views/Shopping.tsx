@@ -7,9 +7,10 @@ interface ShoppingProps {
   setShoppingItems: React.Dispatch<React.SetStateAction<ShoppingItem[]>>;
   itineraryItems: ItineraryItem[];
   isReadOnly?: boolean;
+  onImageClick?: (url: string) => void;
 }
 
-const Shopping: React.FC<ShoppingProps> = ({ shoppingItems, setShoppingItems, itineraryItems, isReadOnly = false }) => {
+const Shopping: React.FC<ShoppingProps> = ({ shoppingItems, setShoppingItems, itineraryItems, isReadOnly = false, onImageClick }) => {
   const [isAdding, setIsAdding] = useState(false);
   const [name, setName] = useState('');
   const [amount, setAmount] = useState('');
@@ -334,8 +335,13 @@ const Shopping: React.FC<ShoppingProps> = ({ shoppingItems, setShoppingItems, it
                     <i className="fas fa-check text-[10px]"></i>
                   </button>
                   {item.image && (
-                    <div className="w-12 h-12 rounded-lg overflow-hidden border border-gray-100 flex-shrink-0">
-                      <img src={item.image} className="w-full h-full object-cover" alt="item" />
+                    <div className="w-12 h-12 rounded-lg overflow-hidden border border-gray-100 flex-shrink-0 cursor-zoom-in">
+                      <img 
+                        src={item.image} 
+                        className="w-full h-full object-cover" 
+                        alt="item" 
+                        onClick={() => onImageClick?.(item.image!)}
+                      />
                     </div>
                   )}
                   <div className="flex-1 min-w-0">

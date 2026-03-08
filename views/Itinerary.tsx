@@ -29,6 +29,7 @@ interface SortableItemProps {
   isGoogleMapLink: (str: string) => boolean;
   shoppingItems: ShoppingItem[];
   toggleShoppingCheck: (id: string) => void;
+  onImageClick: (url: string) => void;
 }
 
 const SortableItineraryItem: React.FC<SortableItemProps> = ({
@@ -41,6 +42,7 @@ const SortableItineraryItem: React.FC<SortableItemProps> = ({
   isGoogleMapLink,
   shoppingItems,
   toggleShoppingCheck,
+  onImageClick,
 }) => {
   const {
     attributes,
@@ -58,6 +60,29 @@ const SortableItineraryItem: React.FC<SortableItemProps> = ({
     opacity: isDragging ? 0.5 : 1,
   };
 
+  const renderTextWithLinks = (text: string) => {
+    if (!text) return null;
+    const urlRegex = /(https?:\/\/[^\s]+)/g;
+    const parts = text.split(urlRegex);
+    return parts.map((part, i) => {
+      if (part.match(urlRegex)) {
+        return (
+          <a 
+            key={i} 
+            href={part} 
+            target="_blank" 
+            rel="noopener noreferrer" 
+            className="text-[#8a7a5d] underline break-all hover:text-[#333] transition-colors"
+            onClick={(e) => e.stopPropagation()}
+          >
+            {part}
+          </a>
+        );
+      }
+      return part;
+    });
+  };
+
   const relatedShopping = shoppingItems.filter(si => si.itineraryItemId === item.id);
 
   return (
@@ -72,10 +97,16 @@ const SortableItineraryItem: React.FC<SortableItemProps> = ({
       
       <div className={`bg-white rounded-2xl border transition-all overflow-hidden ${isReadOnly ? 'border-gray-100' : 'border-[#f1f1f1] minimal-shadow group-hover:border-[#8a7a5d]'}`}>
         {item.attachments && item.attachments.length > 0 && (
-          <div className="relative h-44 bg-gray-100">
+          <div className="relative h-44 bg-gray-100 cursor-zoom-in">
             <div className="flex overflow-x-auto snap-x snap-mandatory scrollbar-hide h-full">
               {item.attachments.map((img, i) => (
-                <img key={i} src={img} className="flex-shrink-0 w-full snap-start object-cover" alt={`${item.activity} ${i}`} />
+                <img 
+                  key={i} 
+                  src={img} 
+                  className="flex-shrink-0 w-full snap-start object-cover" 
+                  alt={`${item.activity} ${i}`} 
+                  onClick={() => onImageClick(img)}
+                />
               ))}
             </div>
             {item.attachments.length > 1 && (
@@ -147,7 +178,9 @@ const SortableItineraryItem: React.FC<SortableItemProps> = ({
 
           {item.note && (
             <div className="mt-3 pt-3 border-t border-[#f9f9f9]">
-              <p className="text-[11px] text-gray-500 leading-relaxed">{item.note}</p>
+              <p className="text-[11px] text-gray-500 leading-relaxed whitespace-pre-wrap">
+                {renderTextWithLinks(item.note)}
+              </p>
             </div>
           )}
         </div>
@@ -169,11 +202,12 @@ interface ItineraryProps {
   shoppingItems: ShoppingItem[];
   setShoppingItems: React.Dispatch<React.SetStateAction<ShoppingItem[]>>;
   isReadOnly?: boolean;
+  onImageClick: (url: string) => void;
 }
 
 const Itinerary: React.FC<ItineraryProps> = ({ 
   items, setItems, onEdit, onRemove, startDate, endDate, dailyMaps, onSetDailyMap,
-  shoppingItems, setShoppingItems, isReadOnly = false
+  shoppingItems, setShoppingItems, isReadOnly = false, onImageClick
 }) => {
   const [activeDate, setActiveDate] = useState(startDate);
   const [showMapSetting, setShowMapSetting] = useState(false);
@@ -370,6 +404,7 @@ const Itinerary: React.FC<ItineraryProps> = ({
                 isGoogleMapLink={isGoogleMapLink}
                 shoppingItems={shoppingItems}
                 toggleShoppingCheck={toggleShoppingCheck}
+                onImageClick={onImageClick}
               />
             ))}
           </SortableContext>

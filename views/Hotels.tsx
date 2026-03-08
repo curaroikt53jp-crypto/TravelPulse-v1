@@ -6,9 +6,10 @@ interface HotelsProps {
   hotels: Hotel[];
   setHotels: React.Dispatch<React.SetStateAction<Hotel[]>>;
   isReadOnly?: boolean;
+  onImageClick: (url: string) => void;
 }
 
-const Hotels: React.FC<HotelsProps> = ({ hotels, setHotels, isReadOnly = false }) => {
+const Hotels: React.FC<HotelsProps> = ({ hotels, setHotels, isReadOnly = false, onImageClick }) => {
   const [isAdding, setIsAdding] = useState(false);
   const [editingId, setEditingId] = useState<string | null>(null);
   const [formData, setFormData] = useState<Partial<Hotel>>({
@@ -211,10 +212,16 @@ const Hotels: React.FC<HotelsProps> = ({ hotels, setHotels, isReadOnly = false }
         {sortedHotels.map(hotel => (
           <div key={hotel.id} className={`bg-white rounded-3xl border transition-all overflow-hidden ${hotel.isSelected ? 'border-[#8a7a5d] ring-1 ring-[#8a7a5d] shadow-lg' : 'border-[#f1f1f1] minimal-shadow'}`}>
             {hotel.images && hotel.images.length > 0 && (
-              <div className="relative h-56 bg-gray-100">
+              <div className="relative h-56 bg-gray-100 cursor-zoom-in">
                 <div className="flex overflow-x-auto snap-x snap-mandatory scrollbar-hide h-full">
                   {hotel.images.map((img, i) => (
-                    <img key={i} src={img} className="flex-shrink-0 w-full snap-start object-cover" alt={`${hotel.name} ${i}`} />
+                    <img 
+                      key={i} 
+                      src={img} 
+                      className="flex-shrink-0 w-full snap-start object-cover" 
+                      alt={`${hotel.name} ${i}`} 
+                      onClick={() => onImageClick(img)}
+                    />
                   ))}
                 </div>
                 {hotel.images.length > 1 && (

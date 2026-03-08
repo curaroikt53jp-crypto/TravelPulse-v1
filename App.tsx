@@ -32,6 +32,7 @@ const App: React.FC = () => {
   const [archives, setArchives] = useState<ArchivedTrip[]>([]);
   const [isHistoryOpen, setIsHistoryOpen] = useState(false);
   const [isViewingArchive, setIsViewingArchive] = useState(false);
+  const [selectedImage, setSelectedImage] = useState<string | null>(null);
 
   const applyTripData = (data: any) => {
     if (data.destination) setDestination(data.destination);
@@ -168,6 +169,7 @@ const App: React.FC = () => {
       hotels, setHotels,
       itineraryItems,
       shoppingItems,
+      onImageClick: (url: string) => setSelectedImage(url),
       dailyMaps, setDailyMap: (date: string, url: string) => !isViewingArchive && setDailyMaps(prev => ({ ...prev, [date]: url })),
       onReset: handleResetTrip,
       onArchive: handleArchive,
@@ -184,7 +186,7 @@ const App: React.FC = () => {
     switch (currentView) {
       case 'dashboard': return <Dashboard {...commonProps} />;
       case 'flights': return <Flights flights={flights} setFlights={setFlights} isReadOnly={isViewingArchive} />;
-      case 'hotels': return <Hotels hotels={hotels} setHotels={setHotels} isReadOnly={isViewingArchive} />;
+      case 'hotels': return <Hotels hotels={hotels} setHotels={setHotels} isReadOnly={isViewingArchive} onImageClick={commonProps.onImageClick} />;
       case 'itinerary': return (
         <Itinerary 
           destination={destination} 
@@ -199,6 +201,7 @@ const App: React.FC = () => {
           shoppingItems={shoppingItems}
           setShoppingItems={setShoppingItems}
           isReadOnly={isViewingArchive}
+          onImageClick={commonProps.onImageClick}
         />
       );
       case 'shopping': return (
@@ -207,6 +210,7 @@ const App: React.FC = () => {
           setShoppingItems={setShoppingItems} 
           itineraryItems={itineraryItems} 
           isReadOnly={isViewingArchive}
+          onImageClick={commonProps.onImageClick}
         />
       );
       default: return <Dashboard {...commonProps} />;
@@ -305,6 +309,29 @@ const App: React.FC = () => {
                 )}
               </div>
             </div>
+          </div>
+        </div>
+      )}
+
+      {/* Image Lightbox */}
+      {selectedImage && (
+        <div 
+          className="fixed inset-0 z-[200] bg-black/90 backdrop-blur-md flex items-center justify-center p-4 animate-in fade-in duration-300"
+          onClick={() => setSelectedImage(null)}
+        >
+          <button 
+            className="absolute top-6 right-6 text-white text-2xl p-2 z-[210] hover:scale-110 transition-transform"
+            onClick={() => setSelectedImage(null)}
+          >
+            <i className="fas fa-times"></i>
+          </button>
+          <div className="relative max-w-full max-h-full flex items-center justify-center">
+            <img 
+              src={selectedImage} 
+              className="max-w-full max-h-[85vh] object-contain rounded-lg shadow-2xl animate-in zoom-in-95 duration-300" 
+              alt="Full size" 
+              onClick={(e) => e.stopPropagation()}
+            />
           </div>
         </div>
       )}
