@@ -62,6 +62,7 @@ export interface ShoppingItem {
   images?: string[];
   note?: string;
   quantity?: number;
+  purchasedQuantity?: number;
 }
 
 export interface DebtItem {

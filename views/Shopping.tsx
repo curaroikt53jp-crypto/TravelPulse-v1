@@ -24,6 +24,12 @@ const Shopping: React.FC<ShoppingProps> = ({ shoppingItems, setShoppingItems, it
   const [note, setNote] = useState('');
   const [quantity, setQuantity] = useState('1');
   const [editingItemId, setEditingItemId] = useState<string | null>(null);
+  const [quantityPopup, setQuantityPopup] = useState<{ isOpen: boolean; itemId: string | null; targetQuantity: number }>({
+    isOpen: false,
+    itemId: null,
+    targetQuantity: 1
+  });
+  const [inputPurchasedQuantity, setInputPurchasedQuantity] = useState('');
 
   const buyers = ['全部', ...Array.from(new Set(shoppingItems.map(item => item.forWhom || '自己'))).sort()];
   const itineraryDates: string[] = Array.from(
@@ -131,9 +137,31 @@ const Shopping: React.FC<ShoppingProps> = ({ shoppingItems, setShoppingItems, it
 
   const toggleCheck = (id: string) => {
     if (isReadOnly) return;
-    setShoppingItems(prev => prev.map(item => 
-      item.id === id ? { ...item, isChecked: !item.isChecked } : item
-    ));
+    const item = shoppingItems.find(i => i.id === id);
+    if (!item) return;
+
+    if (!item.isChecked && (item.quantity || 1) > 1) {
+      setQuantityPopup({
+        isOpen: true,
+        itemId: id,
+        targetQuantity: item.quantity || 1
+      });
+      setInputPurchasedQuantity((item.quantity || 1).toString());
+    } else {
+      setShoppingItems(prev => prev.map(item => 
+        item.id === id ? { ...item, isChecked: !item.isChecked, purchasedQuantity: !item.isChecked ? (item.quantity || 1) : undefined } : item
+      ));
+    }
+  };
+
+  const handleConfirmQuantity = () => {
+    if (quantityPopup.itemId) {
+      const purchased = Number(inputPurchasedQuantity) || 0;
+      setShoppingItems(prev => prev.map(item => 
+        item.id === quantityPopup.itemId ? { ...item, isChecked: true, purchasedQuantity: purchased } : item
+      ));
+    }
+    setQuantityPopup({ isOpen: false, itemId: null, targetQuantity: 1 });
   };
 
   const removeItem = (id: string) => {
@@ -190,7 +218,8 @@ const Shopping: React.FC<ShoppingProps> = ({ shoppingItems, setShoppingItems, it
   const summaryByCurrency = filteredItems
     .filter(item => item.isChecked)
     .reduce((acc, item) => {
-      acc[item.currency] = (acc[item.currency] || 0) + item.amount;
+      const q = item.purchasedQuantity ?? (item.quantity || 1);
+      acc[item.currency] = (acc[item.currency] || 0) + (item.amount * q);
       return acc;
     }, {} as Record<string, number>);
 
@@ -445,7 +474,9 @@ const Shopping: React.FC<ShoppingProps> = ({ shoppingItems, setShoppingItems, it
                           {item.forWhom || '自己'}
                         </span>
                         {item.quantity && item.quantity > 1 && (
-                          <span className="text-[10px] font-bold text-gray-400">x {item.quantity}</span>
+                          <span className={`text-[10px] font-bold ${item.isChecked && item.purchasedQuantity !== undefined && item.purchasedQuantity < item.quantity ? 'text-orange-500' : 'text-gray-400'}`}>
+                            {item.isChecked && item.purchasedQuantity !== undefined ? `已購入 ${item.purchasedQuantity} / ${item.quantity}` : `x ${item.quantity}`}
+                          </span>
                         )}
                       </div>
                       {linkedItinerary && (
@@ -459,7 +490,7 @@ const Shopping: React.FC<ShoppingProps> = ({ shoppingItems, setShoppingItems, it
                   <div className="flex items-center gap-4">
                     <div className="text-right">
                       <p className={`text-xs font-bold serif-font ${item.isChecked ? 'text-gray-300' : 'text-[#222]'}`}>
-                        {item.currency} {item.amount.toLocaleString()}
+                        {item.currency} {(item.amount * (item.isChecked && item.purchasedQuantity !== undefined ? item.purchasedQuantity : (item.quantity || 1))).toLocaleString()}
                       </p>
                     </div>
                     {!isReadOnly && (
@@ -488,6 +519,57 @@ const Shopping: React.FC<ShoppingProps> = ({ shoppingItems, setShoppingItems, it
           })
         )}
       </div>
+
+      {quantityPopup.isOpen && (
+        <div className="fixed inset-0 z-[100] flex items-center justify-center px-4">
+          <div className="absolute inset-0 bg-black/60 backdrop-blur-sm" onClick={() => setQuantityPopup({ isOpen: false, itemId: null, targetQuantity: 1 })}></div>
+          <div className="relative bg-white w-full max-w-xs rounded-3xl p-6 shadow-2xl animate-in zoom-in-95 duration-200">
+            <h3 className="text-base font-bold text-[#333] mb-4 flex items-center gap-2">
+              <i className="fas fa-shopping-basket text-[#8a7a5d]"></i>
+              確認購入數量
+            </h3>
+            <p className="text-[11px] text-gray-400 mb-4 font-bold tracking-widest uppercase">
+              目標數量：{quantityPopup.targetQuantity}
+            </p>
+            <div className="space-y-4">
+              <div className="flex items-center gap-3">
+                <button 
+                  onClick={() => setInputPurchasedQuantity(prev => Math.max(0, Number(prev) - 1).toString())}
+                  className="w-10 h-10 rounded-xl bg-gray-50 flex items-center justify-center text-[#333] active:scale-90 transition-transform"
+                >
+                  <i className="fas fa-minus text-[10px]"></i>
+                </button>
+                <input 
+                  type="number" 
+                  value={inputPurchasedQuantity}
+                  onChange={e => setInputPurchasedQuantity(e.target.value)}
+                  className="flex-1 text-center font-bold text-lg bg-gray-50 border-none rounded-xl py-2 outline-none"
+                />
+                <button 
+                  onClick={() => setInputPurchasedQuantity(prev => (Number(prev) + 1).toString())}
+                  className="w-10 h-10 rounded-xl bg-gray-50 flex items-center justify-center text-[#333] active:scale-90 transition-transform"
+                >
+                  <i className="fas fa-plus text-[10px]"></i>
+                </button>
+              </div>
+              <div className="grid grid-cols-2 gap-3 pt-2">
+                <button 
+                  onClick={() => setQuantityPopup({ isOpen: false, itemId: null, targetQuantity: 1 })}
+                  className="py-3 rounded-xl text-[10px] font-bold tracking-widest uppercase text-gray-400 border border-gray-100 active:scale-95 transition-transform"
+                >
+                  取消
+                </button>
+                <button 
+                  onClick={handleConfirmQuantity}
+                  className="py-3 rounded-xl text-[10px] font-bold tracking-widest uppercase bg-[#333] text-white shadow-md active:scale-95 transition-transform"
+                >
+                  確認
+                </button>
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 };
