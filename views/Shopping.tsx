@@ -422,16 +422,16 @@ const Shopping: React.FC<ShoppingProps> = ({ shoppingItems, setShoppingItems, it
                       <i className="fas fa-check text-[10px]"></i>
                     </button>
                     {item.images && item.images.length > 0 && (
-                      <div className="flex gap-1 overflow-x-auto scrollbar-hide max-w-[100px] flex-shrink-0">
-                        {item.images.map((img, i) => (
-                          <div 
-                            key={i} 
-                            className="w-10 h-10 rounded-lg overflow-hidden border border-gray-100 flex-shrink-0 cursor-zoom-in"
-                            onClick={() => onImageClick?.(item.images!, i)}
-                          >
-                            <img src={img} className="w-full h-full object-cover" alt="item" />
+                      <div 
+                        className="relative w-10 h-10 rounded-lg overflow-hidden border border-gray-100 flex-shrink-0 cursor-zoom-in group/img"
+                        onClick={() => onImageClick?.(item.images!, 0)}
+                      >
+                        <img src={item.images[0]} className="w-full h-full object-cover" alt="item" />
+                        {item.images.length > 1 && (
+                          <div className="absolute inset-0 bg-black/40 flex items-center justify-center group-hover/img:bg-black/20 transition-colors">
+                            <span className="text-[9px] font-black text-white">+{item.images.length - 1}</span>
                           </div>
-                        ))}
+                        )}
                       </div>
                     )}
                     <div className="flex-1 min-w-0">
