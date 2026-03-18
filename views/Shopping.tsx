@@ -19,7 +19,10 @@ const Shopping: React.FC<ShoppingProps> = ({ shoppingItems, setShoppingItems, it
   const [selectedDateForItinerary, setSelectedDateForItinerary] = useState('');
   const [forWhom, setForWhom] = useState('');
   const [activeBuyer, setActiveBuyer] = useState('全部');
-  const [image, setImage] = useState<string | undefined>(undefined);
+  const [images, setImages] = useState<string[]>([]);
+  const [imageUrlInput, setImageUrlInput] = useState('');
+  const [note, setNote] = useState('');
+  const [quantity, setQuantity] = useState('1');
   const [editingItemId, setEditingItemId] = useState<string | null>(null);
 
   const buyers = ['全部', ...Array.from(new Set(shoppingItems.map(item => item.forWhom || '自己'))).sort()];
@@ -58,7 +61,9 @@ const Shopping: React.FC<ShoppingProps> = ({ shoppingItems, setShoppingItems, it
             currency: amountCurrency,
             itineraryItemId: itineraryId || undefined,
             forWhom: forWhom.trim() || '自己',
-            image
+            images,
+            note,
+            quantity: Number(quantity) || 1
           } : item
         ));
         setEditingItemId(null);
@@ -71,7 +76,9 @@ const Shopping: React.FC<ShoppingProps> = ({ shoppingItems, setShoppingItems, it
           isChecked: false,
           itineraryItemId: itineraryId || undefined,
           forWhom: forWhom.trim() || '自己',
-          image
+          images,
+          note,
+          quantity: Number(quantity) || 1
         };
         setShoppingItems(prev => [...prev, newItem]);
       }
@@ -80,8 +87,19 @@ const Shopping: React.FC<ShoppingProps> = ({ shoppingItems, setShoppingItems, it
       setItineraryId('');
       setSelectedDateForItinerary('');
       setForWhom('');
-      setImage(undefined);
+      setImages([]);
+      setImageUrlInput('');
+      setNote('');
+      setQuantity('1');
       setIsAdding(false);
+    }
+  };
+
+  const addImage = () => {
+    const trimmedUrl = imageUrlInput.trim();
+    if (trimmedUrl) {
+      setImages(prev => [...prev, trimmedUrl]);
+      setImageUrlInput('');
     }
   };
 
@@ -91,7 +109,9 @@ const Shopping: React.FC<ShoppingProps> = ({ shoppingItems, setShoppingItems, it
     setAmount(item.amount.toString());
     setAmountCurrency(item.currency);
     setForWhom(item.forWhom || '');
-    setImage(item.image);
+    setImages(item.images || []);
+    setNote(item.note || '');
+    setQuantity((item.quantity || 1).toString());
     
     if (item.itineraryItemId) {
       const linked = itineraryItems.find(i => i.id === item.itineraryItemId);
@@ -144,6 +164,29 @@ const Shopping: React.FC<ShoppingProps> = ({ shoppingItems, setShoppingItems, it
       return whomA.localeCompare(whomB);
     });
 
+  const renderTextWithLinks = (text: string) => {
+    if (!text) return null;
+    const urlRegex = /(https?:\/\/[^\s]+)/g;
+    const parts = text.split(urlRegex);
+    return parts.map((part, i) => {
+      if (part.match(urlRegex)) {
+        return (
+          <a 
+            key={i} 
+            href={part} 
+            target="_blank" 
+            rel="noopener noreferrer" 
+            className="text-[#8a7a5d] underline break-all hover:text-[#333] transition-colors"
+            onClick={(e) => e.stopPropagation()}
+          >
+            {part}
+          </a>
+        );
+      }
+      return part;
+    });
+  };
+
   const summaryByCurrency = filteredItems
     .filter(item => item.isChecked)
     .reduce((acc, item) => {
@@ -173,7 +216,10 @@ const Shopping: React.FC<ShoppingProps> = ({ shoppingItems, setShoppingItems, it
                 setItineraryId('');
                 setSelectedDateForItinerary('');
                 setForWhom('');
-                setImage(undefined);
+                setImages([]);
+                setImageUrlInput('');
+                setNote('');
+                setQuantity('1');
               } else {
                 setIsAdding(true);
               }
@@ -243,40 +289,80 @@ const Shopping: React.FC<ShoppingProps> = ({ shoppingItems, setShoppingItems, it
             />
           </div>
           
-          <div className="flex gap-2">
-            <input 
-              type="number" placeholder="金額" 
-              value={amount} onChange={e => setAmount(e.target.value)}
-              className="flex-1 min-w-0 text-sm bg-gray-50 border-none rounded-xl px-4 py-3 outline-none focus:ring-1 focus:ring-gray-100" 
-            />
-            <select 
-              value={amountCurrency} 
-              onChange={e => setAmountCurrency(e.target.value)}
-              className="w-20 flex-shrink-0 bg-gray-50 border-none rounded-xl px-2 text-[10px] font-bold text-[#8a7a5d] outline-none"
-            >
-              <option value="JPY">JPY</option>
-              <option value="TWD">TWD</option>
-              <option value="USD">USD</option>
-            </select>
+          <div className="grid grid-cols-2 gap-2">
+            <div className="flex gap-2">
+              <input 
+                type="number" placeholder="金額" 
+                value={amount} onChange={e => setAmount(e.target.value)}
+                className="flex-1 min-w-0 text-sm bg-gray-50 border-none rounded-xl px-4 py-3 outline-none focus:ring-1 focus:ring-gray-100" 
+              />
+              <select 
+                value={amountCurrency} 
+                onChange={e => setAmountCurrency(e.target.value)}
+                className="w-20 flex-shrink-0 bg-gray-50 border-none rounded-xl px-2 text-[10px] font-bold text-[#8a7a5d] outline-none"
+              >
+                <option value="JPY">JPY</option>
+                <option value="TWD">TWD</option>
+                <option value="USD">USD</option>
+              </select>
+            </div>
+            <div className="flex items-center gap-2">
+              <p className="text-[9px] font-bold text-gray-400 uppercase ml-1">數量</p>
+              <input 
+                type="number" placeholder="數量" 
+                value={quantity} onChange={e => setQuantity(e.target.value)}
+                className="w-full text-sm bg-gray-50 border-none rounded-xl px-4 py-3 outline-none focus:ring-1 focus:ring-gray-100" 
+              />
+            </div>
           </div>
 
           <div className="space-y-2">
-            <p className="text-[9px] font-bold text-gray-400 uppercase ml-1">物品照片網址 (選填)</p>
+            <p className="text-[9px] font-bold text-gray-400 uppercase ml-1">物品照片網址 (可多張)</p>
             <div className="flex gap-3">
               <input 
                 type="url" 
                 placeholder="貼上圖片 URL..." 
-                value={image || ''} 
-                onChange={e => setImage(e.target.value)}
+                value={imageUrlInput} 
+                onChange={e => setImageUrlInput(e.target.value)}
+                onKeyDown={e => {
+                  if (e.key === 'Enter') {
+                    e.preventDefault();
+                    addImage();
+                  }
+                }}
                 className="flex-1 bg-gray-50 border-none rounded-xl px-4 py-3 text-sm outline-none" 
               />
-              {image && (
-                <div className="relative w-12 h-12 rounded-xl overflow-hidden border border-gray-100 flex-shrink-0">
-                  <img src={image} className="w-full h-full object-cover" alt="preview" />
-                  <button onClick={() => setImage(undefined)} className="absolute top-0 right-0 bg-black/50 text-white w-4 h-4 text-[8px] flex items-center justify-center"><i className="fas fa-times"></i></button>
-                </div>
-              )}
+              <button 
+                type="button"
+                onClick={addImage}
+                className="px-4 rounded-xl bg-[#333] text-white text-[10px] font-bold uppercase tracking-widest active:scale-95 transition-transform"
+              >
+                新增
+              </button>
             </div>
+            <div className="flex gap-2 overflow-x-auto py-2 scrollbar-hide">
+              {images.map((url, i) => (
+                <div key={i} className="relative w-20 h-20 rounded-lg overflow-hidden flex-shrink-0 border border-gray-100">
+                  <img src={url} className="w-full h-full object-cover" alt="prev" />
+                  <button 
+                    type="button" 
+                    onClick={() => setImages(prev => prev.filter((_, idx) => idx !== i))} 
+                    className="absolute top-1 right-1 bg-black/50 text-white w-5 h-5 rounded-full flex items-center justify-center"
+                  >
+                    <i className="fas fa-times text-[10px]"></i>
+                  </button>
+                </div>
+              ))}
+            </div>
+          </div>
+
+          <div className="space-y-2">
+            <p className="text-[9px] font-bold text-gray-400 uppercase ml-1">備註</p>
+            <textarea 
+              placeholder="備註資訊..." 
+              value={note} onChange={e => setNote(e.target.value)}
+              className="w-full text-sm bg-gray-50 border-none rounded-xl px-4 py-3 outline-none focus:ring-1 focus:ring-gray-100 min-h-[80px]" 
+            />
           </div>
 
           <div className="space-y-2 pt-2 border-t border-gray-50">
@@ -324,62 +410,86 @@ const Shopping: React.FC<ShoppingProps> = ({ shoppingItems, setShoppingItems, it
           filteredItems.map(item => {
             const linkedItinerary = itineraryItems.find(i => i.id === item.itineraryItemId);
             return (
-              <div key={item.id} className={`group bg-white p-4 rounded-2xl border transition-all flex items-center justify-between ${item.isChecked ? 'opacity-60 border-transparent' : 'border-[#f1f1f1] minimal-shadow'}`}>
-                <div className="flex items-center gap-4 flex-1">
-                  <button 
-                    onClick={() => toggleCheck(item.id)}
-                    className={`w-6 h-6 rounded-full border-2 flex items-center justify-center transition-colors ${
-                      item.isChecked ? 'bg-green-500 border-green-500 text-white' : 'border-gray-200 text-transparent'
-                    } ${isReadOnly ? 'cursor-default' : ''}`}
-                  >
-                    <i className="fas fa-check text-[10px]"></i>
-                  </button>
-                  {item.image && (
-                    <div className="w-12 h-12 rounded-lg overflow-hidden border border-gray-100 flex-shrink-0 cursor-zoom-in">
-                      <img 
-                        src={item.image} 
-                        className="w-full h-full object-cover" 
-                        alt="item" 
-                        onClick={() => onImageClick?.(item.image!)}
-                      />
+              <div key={item.id} className={`group bg-white rounded-2xl border transition-all overflow-hidden ${item.isChecked ? 'opacity-60 border-transparent' : 'border-[#f1f1f1] minimal-shadow'}`}>
+                {item.images && item.images.length > 0 && (
+                  <div className="relative h-44 bg-gray-100 cursor-zoom-in">
+                    <div className="flex overflow-x-auto snap-x snap-mandatory scrollbar-hide h-full">
+                      {item.images.map((img, i) => (
+                        <img 
+                          key={i} 
+                          src={img} 
+                          className="flex-shrink-0 w-full snap-start object-cover" 
+                          alt={`${item.name} ${i}`} 
+                          onClick={() => onImageClick?.(img)}
+                        />
+                      ))}
                     </div>
-                  )}
-                  <div className="flex-1 min-w-0">
-                    <div className="flex items-center gap-2">
-                      <h4 className={`text-sm font-bold text-[#333] truncate ${item.isChecked ? 'line-through text-gray-400' : ''}`}>
-                        {item.name}
-                      </h4>
-                      <span className={`text-[8px] font-bold px-2 py-0.5 rounded-full border ${
-                        item.isChecked ? 'bg-gray-100 text-gray-300 border-gray-100' : 'bg-[#fcfaf6] text-[#8a7a5d] border-[#e5e1db]'
-                      }`}>
-                        {item.forWhom || '自己'}
-                      </span>
+                    {item.images.length > 1 && (
+                      <div className="absolute bottom-3 right-4 bg-black/50 backdrop-blur-sm text-white px-2 py-1 rounded-full text-[8px] font-bold tracking-widest uppercase">
+                        <i className="fas fa-images mr-1"></i> {item.images.length} Photos
+                      </div>
+                    )}
+                  </div>
+                )}
+                <div className="p-4 flex items-center justify-between">
+                  <div className="flex items-center gap-4 flex-1">
+                    <button 
+                      onClick={() => toggleCheck(item.id)}
+                      className={`w-6 h-6 rounded-full border-2 flex items-center justify-center transition-colors ${
+                        item.isChecked ? 'bg-green-500 border-green-500 text-white' : 'border-gray-200 text-transparent'
+                      } ${isReadOnly ? 'cursor-default' : ''}`}
+                    >
+                      <i className="fas fa-check text-[10px]"></i>
+                    </button>
+                    <div className="flex-1 min-w-0">
+                      <div className="flex items-center gap-2">
+                        <h4 className={`text-sm font-bold text-[#333] truncate ${item.isChecked ? 'line-through text-gray-400' : ''}`}>
+                          {item.name}
+                        </h4>
+                        <span className={`text-[8px] font-bold px-2 py-0.5 rounded-full border ${
+                          item.isChecked ? 'bg-gray-100 text-gray-300 border-gray-100' : 'bg-[#fcfaf6] text-[#8a7a5d] border-[#e5e1db]'
+                        }`}>
+                          {item.forWhom || '自己'}
+                        </span>
+                        {item.quantity && item.quantity > 1 && (
+                          <span className="text-[10px] font-bold text-gray-400">x {item.quantity}</span>
+                        )}
+                      </div>
+                      {linkedItinerary && (
+                        <p className="text-[9px] text-gray-400 font-bold tracking-widest uppercase mt-0.5">
+                          <i className="fas fa-calendar-alt mr-1"></i>
+                          {linkedItinerary.date.split('-').slice(1).join('/')} {linkedItinerary.activity}
+                        </p>
+                      )}
                     </div>
-                    {linkedItinerary && (
-                      <p className="text-[9px] text-gray-400 font-bold tracking-widest uppercase mt-0.5">
-                        <i className="fas fa-calendar-alt mr-1"></i>
-                        {linkedItinerary.date.split('-').slice(1).join('/')} {linkedItinerary.activity}
+                  </div>
+                  <div className="flex items-center gap-4">
+                    <div className="text-right">
+                      <p className={`text-xs font-bold serif-font ${item.isChecked ? 'text-gray-300' : 'text-[#222]'}`}>
+                        {item.currency} {item.amount.toLocaleString()}
                       </p>
+                    </div>
+                    {!isReadOnly && (
+                      <div className="flex gap-2 opacity-0 group-hover:opacity-100 transition-opacity">
+                        <button onClick={() => handleEdit(item)} className="text-gray-300 hover:text-[#8a7a5d] p-1">
+                          <i className="fas fa-pen text-[10px]"></i>
+                        </button>
+                        <button onClick={() => removeItem(item.id)} className="text-gray-100 hover:text-red-300 p-1">
+                          <i className="fas fa-trash-alt text-[10px]"></i>
+                        </button>
+                      </div>
                     )}
                   </div>
                 </div>
-                <div className="flex items-center gap-4">
-                  <div className="text-right">
-                    <p className={`text-xs font-bold serif-font ${item.isChecked ? 'text-gray-300' : 'text-[#222]'}`}>
-                      {item.currency} {item.amount.toLocaleString()}
-                    </p>
-                  </div>
-                  {!isReadOnly && (
-                    <div className="flex gap-2 opacity-0 group-hover:opacity-100 transition-opacity">
-                      <button onClick={() => handleEdit(item)} className="text-gray-300 hover:text-[#8a7a5d] p-1">
-                        <i className="fas fa-pen text-[10px]"></i>
-                      </button>
-                      <button onClick={() => removeItem(item.id)} className="text-gray-100 hover:text-red-300 p-1">
-                        <i className="fas fa-trash-alt text-[10px]"></i>
-                      </button>
+                {item.note && (
+                  <div className="px-4 pb-4 pt-0">
+                    <div className="pt-3 border-t border-[#f9f9f9]">
+                      <p className="text-[11px] text-gray-500 leading-relaxed whitespace-pre-wrap">
+                        {renderTextWithLinks(item.note)}
+                      </p>
                     </div>
-                  )}
-                </div>
+                  </div>
+                )}
               </div>
             );
           })

@@ -59,7 +59,9 @@ export interface ShoppingItem {
   isChecked: boolean;
   itineraryItemId?: string;
   forWhom: string;
-  image?: string;
+  images?: string[];
+  note?: string;
+  quantity?: number;
 }
 
 export interface DebtItem {
