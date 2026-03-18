@@ -29,7 +29,7 @@ interface SortableItemProps {
   isGoogleMapLink: (str: string) => boolean;
   shoppingItems: ShoppingItem[];
   toggleShoppingCheck: (id: string) => void;
-  onImageClick: (url: string) => void;
+  onImageClick: (images: string[] | string, index?: number) => void;
 }
 
 const SortableItineraryItem: React.FC<SortableItemProps> = ({
@@ -105,7 +105,7 @@ const SortableItineraryItem: React.FC<SortableItemProps> = ({
                   src={img} 
                   className="flex-shrink-0 w-full snap-start object-cover" 
                   alt={`${item.activity} ${i}`} 
-                  onClick={() => onImageClick(img)}
+                  onClick={() => onImageClick(item.attachments!, i)}
                 />
               ))}
             </div>
@@ -202,7 +202,7 @@ interface ItineraryProps {
   shoppingItems: ShoppingItem[];
   setShoppingItems: React.Dispatch<React.SetStateAction<ShoppingItem[]>>;
   isReadOnly?: boolean;
-  onImageClick: (url: string) => void;
+  onImageClick: (images: string[] | string, index?: number) => void;
 }
 
 const Itinerary: React.FC<ItineraryProps> = ({ 

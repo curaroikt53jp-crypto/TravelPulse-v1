@@ -6,7 +6,7 @@ interface HotelsProps {
   hotels: Hotel[];
   setHotels: React.Dispatch<React.SetStateAction<Hotel[]>>;
   isReadOnly?: boolean;
-  onImageClick: (url: string) => void;
+  onImageClick: (images: string[] | string, index?: number) => void;
 }
 
 const Hotels: React.FC<HotelsProps> = ({ hotels, setHotels, isReadOnly = false, onImageClick }) => {
@@ -220,7 +220,7 @@ const Hotels: React.FC<HotelsProps> = ({ hotels, setHotels, isReadOnly = false, 
                       src={img} 
                       className="flex-shrink-0 w-full snap-start object-cover" 
                       alt={`${hotel.name} ${i}`} 
-                      onClick={() => onImageClick(img)}
+                      onClick={() => onImageClick(hotel.images, i)}
                     />
                   ))}
                 </div>

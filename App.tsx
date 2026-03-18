@@ -32,7 +32,13 @@ const App: React.FC = () => {
   const [archives, setArchives] = useState<ArchivedTrip[]>([]);
   const [isHistoryOpen, setIsHistoryOpen] = useState(false);
   const [isViewingArchive, setIsViewingArchive] = useState(false);
-  const [selectedImage, setSelectedImage] = useState<string | null>(null);
+  const [lightboxImages, setLightboxImages] = useState<string[]>([]);
+  const [currentImageIndex, setCurrentImageIndex] = useState(0);
+
+  const openLightbox = (images: string[], index: number = 0) => {
+    setLightboxImages(images);
+    setCurrentImageIndex(index);
+  };
 
   const applyTripData = (data: any) => {
     if (data.destination) setDestination(data.destination);
@@ -169,7 +175,10 @@ const App: React.FC = () => {
       hotels, setHotels,
       itineraryItems,
       shoppingItems,
-      onImageClick: (url: string) => setSelectedImage(url),
+      onImageClick: (images: string[] | string, index: number = 0) => {
+        const imgs = Array.isArray(images) ? images : [images];
+        openLightbox(imgs, index);
+      },
       dailyMaps, setDailyMap: (date: string, url: string) => !isViewingArchive && setDailyMaps(prev => ({ ...prev, [date]: url })),
       onReset: handleResetTrip,
       onArchive: handleArchive,
@@ -314,20 +323,48 @@ const App: React.FC = () => {
       )}
 
       {/* Image Lightbox */}
-      {selectedImage && (
+      {lightboxImages.length > 0 && (
         <div 
-          className="fixed inset-0 z-[200] bg-black/90 backdrop-blur-md flex items-center justify-center p-4 animate-in fade-in duration-300"
-          onClick={() => setSelectedImage(null)}
+          className="fixed inset-0 z-[200] bg-black/95 backdrop-blur-md flex items-center justify-center p-4 animate-in fade-in duration-300"
+          onClick={() => setLightboxImages([])}
         >
           <button 
             className="absolute top-6 right-6 text-white text-2xl p-2 z-[210] hover:scale-110 transition-transform"
-            onClick={() => setSelectedImage(null)}
+            onClick={() => setLightboxImages([])}
           >
             <i className="fas fa-times"></i>
           </button>
+
+          {lightboxImages.length > 1 && (
+            <>
+              <button 
+                className="absolute left-4 top-1/2 -translate-y-1/2 text-white/50 hover:text-white text-3xl p-4 z-[210] transition-all"
+                onClick={(e) => {
+                  e.stopPropagation();
+                  setCurrentImageIndex((prev) => (prev === 0 ? lightboxImages.length - 1 : prev - 1));
+                }}
+              >
+                <i className="fas fa-chevron-left"></i>
+              </button>
+              <button 
+                className="absolute right-4 top-1/2 -translate-y-1/2 text-white/50 hover:text-white text-3xl p-4 z-[210] transition-all"
+                onClick={(e) => {
+                  e.stopPropagation();
+                  setCurrentImageIndex((prev) => (prev === lightboxImages.length - 1 ? 0 : prev + 1));
+                }}
+              >
+                <i className="fas fa-chevron-right"></i>
+              </button>
+              <div className="absolute bottom-10 left-1/2 -translate-x-1/2 text-white/60 text-[10px] font-bold tracking-[0.3em] uppercase bg-white/5 px-4 py-2 rounded-full backdrop-blur-sm">
+                {currentImageIndex + 1} / {lightboxImages.length}
+              </div>
+            </>
+          )}
+
           <div className="relative max-w-full max-h-full flex items-center justify-center">
             <img 
-              src={selectedImage} 
+              key={lightboxImages[currentImageIndex]}
+              src={lightboxImages[currentImageIndex]} 
               className="max-w-full max-h-[85vh] object-contain rounded-lg shadow-2xl animate-in zoom-in-95 duration-300" 
               alt="Full size" 
               onClick={(e) => e.stopPropagation()}

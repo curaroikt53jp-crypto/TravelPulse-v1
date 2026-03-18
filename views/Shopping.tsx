@@ -411,26 +411,6 @@ const Shopping: React.FC<ShoppingProps> = ({ shoppingItems, setShoppingItems, it
             const linkedItinerary = itineraryItems.find(i => i.id === item.itineraryItemId);
             return (
               <div key={item.id} className={`group bg-white rounded-2xl border transition-all overflow-hidden ${item.isChecked ? 'opacity-60 border-transparent' : 'border-[#f1f1f1] minimal-shadow'}`}>
-                {item.images && item.images.length > 0 && (
-                  <div className="relative h-44 bg-gray-100 cursor-zoom-in">
-                    <div className="flex overflow-x-auto snap-x snap-mandatory scrollbar-hide h-full">
-                      {item.images.map((img, i) => (
-                        <img 
-                          key={i} 
-                          src={img} 
-                          className="flex-shrink-0 w-full snap-start object-cover" 
-                          alt={`${item.name} ${i}`} 
-                          onClick={() => onImageClick?.(img)}
-                        />
-                      ))}
-                    </div>
-                    {item.images.length > 1 && (
-                      <div className="absolute bottom-3 right-4 bg-black/50 backdrop-blur-sm text-white px-2 py-1 rounded-full text-[8px] font-bold tracking-widest uppercase">
-                        <i className="fas fa-images mr-1"></i> {item.images.length} Photos
-                      </div>
-                    )}
-                  </div>
-                )}
                 <div className="p-4 flex items-center justify-between">
                   <div className="flex items-center gap-4 flex-1">
                     <button 
@@ -441,6 +421,19 @@ const Shopping: React.FC<ShoppingProps> = ({ shoppingItems, setShoppingItems, it
                     >
                       <i className="fas fa-check text-[10px]"></i>
                     </button>
+                    {item.images && item.images.length > 0 && (
+                      <div className="flex gap-1 overflow-x-auto scrollbar-hide max-w-[100px] flex-shrink-0">
+                        {item.images.map((img, i) => (
+                          <div 
+                            key={i} 
+                            className="w-10 h-10 rounded-lg overflow-hidden border border-gray-100 flex-shrink-0 cursor-zoom-in"
+                            onClick={() => onImageClick?.(item.images!, i)}
+                          >
+                            <img src={img} className="w-full h-full object-cover" alt="item" />
+                          </div>
+                        ))}
+                      </div>
+                    )}
                     <div className="flex-1 min-w-0">
                       <div className="flex items-center gap-2 flex-wrap">
                         <h4 className={`text-sm font-bold text-[#333] break-words whitespace-normal ${item.isChecked ? 'line-through text-gray-400' : ''}`}>
