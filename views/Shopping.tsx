@@ -442,8 +442,8 @@ const Shopping: React.FC<ShoppingProps> = ({ shoppingItems, setShoppingItems, it
                       <i className="fas fa-check text-[10px]"></i>
                     </button>
                     <div className="flex-1 min-w-0">
-                      <div className="flex items-center gap-2">
-                        <h4 className={`text-sm font-bold text-[#333] truncate ${item.isChecked ? 'line-through text-gray-400' : ''}`}>
+                      <div className="flex items-center gap-2 flex-wrap">
+                        <h4 className={`text-sm font-bold text-[#333] break-words whitespace-normal ${item.isChecked ? 'line-through text-gray-400' : ''}`}>
                           {item.name}
                         </h4>
                         <span className={`text-[8px] font-bold px-2 py-0.5 rounded-full border ${
