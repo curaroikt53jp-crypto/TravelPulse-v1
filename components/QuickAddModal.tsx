@@ -151,6 +151,7 @@ const QuickAddModal: React.FC<QuickAddModalProps> = ({ isOpen, initialData, defa
               <select value={formData.type} onChange={e => setFormData({...formData, type: e.target.value as any})} className="w-full bg-gray-50 border-none rounded-xl px-4 py-3 text-sm outline-none">
                 <option value="attraction">景點</option>
                 <option value="food">美食</option>
+                <option value="shopping">購物</option>
                 <option value="transport">交通</option>
                 <option value="rest">休息</option>
               </select>

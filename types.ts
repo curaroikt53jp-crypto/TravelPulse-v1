@@ -45,7 +45,7 @@ export interface ItineraryItem {
   activity: string;
   location: string;
   locationUrl?: string;
-  type: 'attraction' | 'food' | 'transport' | 'rest';
+  type: 'attraction' | 'food' | 'transport' | 'rest' | 'shopping';
   transportation?: string;
   note?: string;
   attachments?: string[];
