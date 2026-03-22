@@ -121,11 +121,24 @@ const SortableItineraryItem: React.FC<SortableItemProps> = ({
             <div className="space-y-1">
               <div className="flex items-center gap-2">
                 <span className="text-[10px] font-bold text-gray-300 tracking-[0.1em]">{item.startTime} ({item.duration})</span>
-                {item.transportation && (
-                  <span className="text-[9px] bg-gray-50 text-gray-400 px-2 py-0.5 rounded-full border border-gray-100 font-medium">
-                    {item.transportation}
-                  </span>
-                )}
+                <div className="flex items-center gap-1.5">
+                  {item.type && (
+                    <span className="text-[9px] bg-[#8a7a5d]/10 text-[#8a7a5d] px-2 py-0.5 rounded-full border border-[#8a7a5d]/10 font-bold">
+                      {{
+                        attraction: '景點',
+                        food: '美食',
+                        shopping: '購物',
+                        transport: '交通',
+                        rest: '休息'
+                      }[item.type] || item.type}
+                    </span>
+                  )}
+                  {item.transportation && (
+                    <span className="text-[9px] bg-gray-50 text-gray-400 px-2 py-0.5 rounded-full border border-gray-100 font-medium">
+                      {item.transportation}
+                    </span>
+                  )}
+                </div>
               </div>
               <h4 className="font-bold text-[#333] text-base">{item.activity}</h4>
               
