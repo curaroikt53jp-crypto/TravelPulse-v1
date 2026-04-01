@@ -132,6 +132,25 @@ const App: React.FC = () => {
     }
   };
 
+  const handleRestoreArchive = async (archive: ArchivedTrip) => {
+    if (window.confirm(`確定要將「${archive.destination}」還原為當前旅程嗎？這將會覆蓋目前的內容。`)) {
+      setIsInitialLoad(true);
+      try {
+        await saveTripData(archive.data);
+        applyTripData(archive.data);
+        setIsViewingArchive(false);
+        setIsHistoryOpen(false);
+        setCurrentView('dashboard');
+        window.scrollTo({ top: 0, behavior: 'smooth' });
+      } catch (error) {
+        console.error("Restore failed:", error);
+        alert("還原失敗，請稍後再試。");
+      } finally {
+        setIsInitialLoad(false);
+      }
+    }
+  };
+
   const handleQuickAdd = (item: Partial<ItineraryItem>) => {
     if (isViewingArchive) return;
     if (editingItineraryItem) {
@@ -306,12 +325,22 @@ const App: React.FC = () => {
                             <p className="text-[9px] text-gray-400">{arc.startDate} ~ {arc.endDate}</p>
                           </div>
                         </button>
-                        <button 
-                          onClick={(e) => handleDeleteArchive(e, arc.id)}
-                          className="absolute right-3 top-1/2 -translate-y-1/2 w-8 h-8 rounded-full bg-red-50 text-red-400 flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity active:bg-red-100"
-                        >
-                          <i className="fas fa-trash-alt text-[10px]"></i>
-                        </button>
+                        <div className="absolute right-3 top-1/2 -translate-y-1/2 flex gap-2 opacity-0 group-hover:opacity-100 transition-opacity">
+                          <button 
+                            onClick={(e) => { e.stopPropagation(); handleRestoreArchive(arc); }}
+                            className="w-8 h-8 rounded-full bg-green-50 text-green-600 flex items-center justify-center active:bg-green-100"
+                            title="還原為當前旅程"
+                          >
+                            <i className="fas fa-undo-alt text-[10px]"></i>
+                          </button>
+                          <button 
+                            onClick={(e) => handleDeleteArchive(e, arc.id)}
+                            className="w-8 h-8 rounded-full bg-red-50 text-red-400 flex items-center justify-center active:bg-red-100"
+                            title="刪除紀錄"
+                          >
+                            <i className="fas fa-trash-alt text-[10px]"></i>
+                          </button>
+                        </div>
                       </div>
                     ))}
                   </div>
